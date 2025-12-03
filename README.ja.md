@@ -49,3 +49,8 @@ python -m zyng.runner examples/variables.md
 - Core ランタイムと AST: `zyng/core.py`
 - Markdown ランナー: `zyng/runner.py`
 - Core 言語仕様（草案）: `docs/zyng_core_v0.1.md`
+
+## ライセンス
+
+Zyng は MIT ライセンスで公開されています。  
+詳細はリポジトリ内の `LICENSE` ファイルを参照してください。

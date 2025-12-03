@@ -59,3 +59,9 @@ This project is still in a very early stage.
 - Core runtime & AST live under: `zyng/core.py`
 - Markdown runner lives under: `zyng/runner.py`
 - Core language spec (draft): `docs/zyng_core_v0.1.md`
+
+## License
+
+Zyng is released under the MIT License.  
+See the `LICENSE` file for details.
+
