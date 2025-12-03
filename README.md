@@ -1,145 +1,223 @@
-# Zyng Project
+# Zyng
 
-Zyng は、「人間が読めて、機械が厳密に扱える」Zynglish ベースの言語／ツールチェインです。  
-まずは **README 内の ```zyng コードブロックだけを実行できるツール** として開発を進めています（Phase A）。
-
-- Phase A のゴール:  
-  - README をそのまま「軽いスクリプト／テスト」として実行できるようにすること  
-  - コア予約語を 20 語程度に抑えた最小言語として形にすること
+> A tiny timeline-first language for LLM workflows and logs.  
+> Write prompts, workflows, and logs as one coherent text with time metadata.
 
 ---
 
-## Demo: Run this README
+## Overview
 
-この README 自体が Zyng のデモになっています。  
-以下の ```zyng コードブロックだけが実行され、通常の文章は無視されます。
+Zyng is a small experimental language for describing:
 
-```zyng
-show "Hello from README" :::important
+- prompts
+- LLM workflows
+- settings
+- logs
+- light tests
+
+in **one text format**, instead of spreading them across Markdown, YAML, JSON, and ad-hoc scripts.
+
+The core ideas are:
+
+- **timeline-first**  
+  “When did this happen?” is a first-class concept.  
+  Zyng exposes time metadata such as `:::now`, `:::yest`, `:::tomo`, `:::at:"..."` directly in the language.
+- **human-readable, model-friendly**  
+  For humans, Zyng looks like slightly odd but readable English.  
+  For LLMs, it is a semi-structured text that can be parsed or used as training / prompt material.
+
+This repository currently contains a **very early pre-release (v0.0.1)**:
+
+- a minimal runner
+- a tiny core syntax around `show`
+- the ability to run ```zyng blocks inside Markdown files
+
+---
+
+## What problem is Zyng trying to solve?
+
+LLM projects often suffer from:
+
+- README / docs drifting away from the actual prompts and code
+- Human-facing logic scattered across:
+  - Markdown
+  - YAML / JSON
+  - Python scripts
+  - comments
+- Logs that are hard to reuse:
+  - we don’t know **when** a run happened
+  - which **model / policy** was used
+  - what the **intended use** of that text was (log? training? test? policy?)
+
+Zyng aims to address this by:
+
+- making **time** a first-class, explicit concept, and
+- eventually exposing **role / kind / use** metadata at the text level,
+
+so that LLM workflows and logs can be written as **reproducible, readable timelines**.
+
+---
+
+## Status
+
+- Version: `0.0.1`
+- Stability: **experimental / pre-release**
+- Implemented in v0.0.1:
+  - Python package `zyng`
+  - A minimal runner: run ```zyng fenced code blocks inside Markdown
+  - `show "..."` with simple metadata after `:::`
+  - Basic handling of:
+    - `:::now`
+    - `:::yest`
+    - `:::tomo`
+    - `:::at:"2025-12-03T21:00:00+09:00"`
+
+Example output (from `timetst.md`):
+
+```text
+[now] Now message
+[yest] Yesterday message
+[tomo] Tomorrow message
+[at:"2025-12-03T21:00:00+09:00"] Exact time
 ```
 
-（実行方法は現時点のスクリプト構成に応じて、例: `python zyng_v0.4_md.py README.md` など）
+At this stage, Zyng is best considered a **design sketch with a working minimal runner**.
 
 ---
 
-## Design Principles
+## Installation
 
-Zyng / Zynglish は、「人間が読めて、機械が厳密に扱える」簡略英語ベースの言語です。  
-仕様書・テスト・公文書・日常文を、ひとつのコアから書けることを目標に設計しています。
+Zyng is published on PyPI.
 
-### 1. Core の意味は削らない
+```bash
+pip install zyng==0.0.1
+```
 
-- 動詞や時間語などの **意味のインベントリは削らずに設計** する。
-- 一方で、綴りは `yest` / `tomo` のように **短く・発音可能な形に最適化** してよい。
-- つまり、「何を表現できるか」は守り、「どう綴るか」を削る。
+You can verify the installation with:
 
-### 2. 三層構造（Core / State / Nature）
-
-- **Core**  
-  - 約 20 語程度の予約語と、最小限の文法から成る「意味のコア」。  
-  - 例: `show`, `read`, `write`, `use`, `let`, `yest`, `tomo`, `now` など。
-- **State**  
-  - 公文書・仕様・契約など、「曖昧さを嫌うテキスト」を書くためのレイヤー。  
-  - Core の語彙と、厳格に管理された略語のみを使用する。
-- **Nature**  
-  - 物語・会話・ミームなど、創作的なテキストのためのレイヤー。  
-  - 短縮や造語を制限しない。広く使われた表現は将来 Core / State に昇格しうる。
-
-### 3. 記法は `: / :: / :::` に集約する
-
-- `:` は単語の属性、`::` は列（リスト）の属性、`:::` は文全体のメタ情報・制御を表す。
-- 制御構文やモード指定をできるだけ `:::` に寄せ、**新しいキーワードを増やさない**。
-- 例:  
-  - `Mi use pool :::yest`  
-  - `show result :::json`  
-  - `show log :::test`
-
-### 4. 人間が読めて、機械が厳密に扱える
-
-- 文は、英語に似た形で「なんとなく読める」ことを重視する。  
-- 同時に、パーサーとツールチェインが構文と意味を **一意に解釈できる** ことを優先する。
-- README や仕様書をそのまま実行・検証できることを、最初のユースケースとして設計する。
-
-### 5. 英語「らしさ」と、一貫性のバランス
-
-- Zynglish は英語をベースにするが、「正しい英語」を目指すのではなく、  
-  **論理と一貫性を優先した簡略英語** を目指す。
-- 例: 場所やサービス、API などの利用をすべて `use` で統一する。  
-  - `Mi use pool :::yest`  
-  - `use db :::now`
-- 英語としての違和感よりも、「少ない語彙で同じパターンを繰り返せるか」を重視する。
+```bash
+pip show zyng
+```
 
 ---
 
-## Core Keywords (v0.1)
+## Minimal usage
 
-Zyng / Zynglish のコア予約語一覧です。  
-このうち ✓ が付いているものは、Phase A（README Runner + 変数 + read/write/use）で実際に使用されるサブセットです。
+Create a Markdown file, for example `timetst.md`:
 
-### Literals
+```markdown
+# Zyng time test
 
-| Keyword  | Category | Phase A | 説明 |
-|---------|----------|:-------:|------|
-| `true`  | literal  |   ✓     | 真を表す論理値。条件分岐やフラグとして使う。 |
-| `false` | literal  |   ✓     | 偽を表す論理値。条件分岐やフラグとして使う。 |
-| `null`  | literal  |   ✓     | 値が存在しない状態を表す特殊値。Python の `None` に相当。 |
+This is a minimal example of Zyng code inside a fenced block.
 
-### Core Verbs
+```zyng
+show "Now message" :::now
+show "Yesterday message" :::yest
+show "Tomorrow message" :::tomo
+show "Exact time" :::at:"2025-12-03T21:00:00+09:00"
+```
+```
 
-| Keyword  | Category | Phase A | 説明 |
-|---------|----------|:-------:|------|
-| `show`  | verb     |   ✓     | 値やメッセージを表示・ログ出力する。`show "Hello"` のように使う。 |
-| `read`  | verb     |   ✓     | ファイルやストリームなどからデータを読む。`read "users.json" as users`。 |
-| `write` | verb     |   ✓     | データをファイルやストリームに書き出す。`write users to "users.json"`。 |
-| `use`   | verb     |   ✓     | モジュール・リソース・場所・サービスを利用する。`use db`, `Mi use pool :::yest`。 |
-| `let`   | verb     |   ✓     | 変数を導入・代入する。`let user = "Alice"` のように使う。 |
+Then run:
 
-### Time Words
+```bash
+python -m zyng.runner timetst.md
+```
 
-| Keyword  | Category  | Phase A | 説明 |
-|---------|-----------|:-------:|------|
-| `yest`  | time word |   ✓     | 「昨日」を表す時制属性。`:::yest` を付けて昨日の出来事を示す。 |
-| `tomo`  | time word |   ✓     | 「明日」を表す時制属性。`:::tomo` を付けて明日の出来事を示す。 |
-| `now`   | time word |   ✓     | 「今この瞬間」を表す。`:::now` で現在時点の操作・状態を明示する。 |
+The runner will:
 
-（`today` は「時制指定なしのデフォルト」として概念的に存在するが、通常は明示的には書かない。）
+1. Find ```zyng fenced blocks in the Markdown file
+2. Parse each line
+3. Execute `show` commands and print them with their metadata prefix
 
-### Control Keywords (reserved for future versions)
+Current semantics (v0.0.1):
 
-| Keyword     | Category | Phase A | 説明 |
-|------------|----------|:-------:|------|
-| `if`       | control  |         | 条件分岐の開始を表す。将来のバージョンで導入予定。 |
-| `else`     | control  |         | `if` の条件が偽のときに実行する分岐。将来導入予定。 |
-| `for`      | control  |         | 繰り返し処理（反復）を表す。将来導入予定。 |
-| `while`    | control  |         | 条件が真の間、処理を繰り返すループ構文。将来導入予定。 |
-| `return`   | control  |         | 関数から値を返して処理を終了する。将来導入予定。 |
-| `break`    | control  |         | ループを途中で抜けるための制御。将来導入予定。 |
-| `continue` | control  |         | ループ内で残り処理をスキップし、次の反復へ進む。 |
+- `show "Message" :::now`  
+  → prints `[now] Message`
+- `show "Message" :::yest`  
+  → prints `[yest] Message`
+- `show "Message" :::tomo`  
+  → prints `[tomo] Message`
+- `show "Message" :::at:"2025-12-03T21:00:00+09:00"`  
+  → prints `[at:"2025-12-03T21:00:00+09:00"] Message`
 
-### Structure Keywords (reserved)
-
-| Keyword | Category  | Phase A | 説明 |
-|--------|-----------|:-------:|------|
-| `func` | structure |         | 関数定義を行うキーワード。`func name ... { ... }` 形式を想定。 |
-| `type` | structure |         | 型や構造体・レコードを定義するためのキーワード。 |
+The metadata is not yet interpreted as real datetime objects; it is exposed as a readable, structured prefix.
 
 ---
 
-## Phase A Status
+## Core design ideas
 
-Phase A では、上記 Core Keywords のうち主に
+Zyng’s long-term design revolves around four kinds of metadata:
 
-- `true`, `false`, `null`
-- `show`, `read`, `write`, `use`, `let`
-- `yest`, `tomo`, `now`
+- **time** – when is this about?
+  - `now`, `yest`, `tomo`, `:::at:"..."`
+- **role** – whose perspective is this?
+  - e.g. `:::role:"self"`, `:::role:"planner-ai"` (future)
+- **kind** – what type of statement is this?
+  - e.g. `fact`, `feeling`, `plan`, `policy` (future)
+- **use** – what will this line be used for?
+  - e.g. `log`, `train`, `test`, `policy` (future)
 
-だけを実装・利用します。  
-それ以外のキーワード（`if`, `func` など）は **予約されていますが、まだ構文としては利用できません**。
+In v0.0.1, only **time** is surfaced in the runner.  
+`role`, `kind`, and `use` are still at the design level and may change.
 
-今後は：
+The goal is to make it natural to write lines like:
 
-1. README 内の ```zyng ブロックを安定して実行できる CLI ツールとして整える  
-2. Core 文法のサブセット（Phase A 用ミニ文法）を仕様として固定する  
-3. サンプルリポジトリとテスト（README as Code）を整備する  
+```zyng
+show "User asked about travel to Osaka." :::now :::role:"user" :::kind:"fact" :::use:"log"
+```
 
-という順番で進めていきます。
+and have both humans and models benefit from the explicit metadata.
+
+---
+
+## Roadmap (very early draft)
+
+This is a rough, evolving plan.
+
+### v0.0.x – Minimal runner (current)
+
+- [x] Python package `zyng` on PyPI
+- [x] Run ```zyng fenced blocks inside Markdown
+- [x] Implement `show` with simple metadata prefix
+- [x] Handle `now`, `yest`, `tomo`, `at:"..."` as raw time metadata
+
+### v0.1 – README runner / Core language
+
+- Stabilize the Core syntax for:
+  - `show`
+  - `read`
+  - `write`
+  - `use`
+  - `let`
+- Document the core in `docs/zyng_core_v0.1.md`
+- Make project READMEs executable as Zyng scripts in a more robust way
+
+### v0.2 – Importable by others
+
+- Provide 2–3 sample projects:
+  - logging / diary style
+  - a small LLM workflow (even with dummy calls)
+- Write a guide:  
+  **“How to adopt Zyng in your own project”**
+- Provide example mappings from Zyng to:
+  - Python dicts
+  - OpenAI / Claude / Gemini API calls
+- Start treating Core spec as mostly backward-compatible
+
+---
+
+## Author
+
+- Design & Implementation: **Yo Kobayashi**  
+  - Contact: **yaw.kobayashi@proton.me**
+
+Zyng is an experimental personal project exploring timeline-first, metadata-rich text for LLM workflows.  
+If you build something inspired by Zyng, adding a note or link back here would be very welcome.
+
+---
+
+## License
+
+Zyng is currently released under the **MIT License**.  
+(If this changes in the future, this section will be updated.)
