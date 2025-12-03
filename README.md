@@ -125,19 +125,13 @@ pip show zyng
 
 ## Minimal usage
 
-Create a Markdown file, for example `timetst.md`:
-
-```markdown
-# Zyng time test
-
-This is a minimal example of Zyng code inside a fenced block.
+Create a Markdown file, for example `timetst.md`, and put a Zyng code block like this:
 
 ```zyng
 show "Now message" :::now
 show "Yesterday message" :::yest
 show "Tomorrow message" :::tomo
 show "Exact time" :::at:"2025-12-03T21:00:00+09:00"
-```
 ```
 
 Then run:

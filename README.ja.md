@@ -122,12 +122,7 @@ pip show zyng
 
 ## 最小の使い方
 
-例えば `timetst.md` という Markdown ファイルを作ります。
-
-```markdown
-# Zyng time test
-
-これは、Zyng のコードをフェンスブロック内に書いた最小の例です。
+例えば `timetst.md` という Markdown ファイルを作り、次のような Zyng ブロックを書きます。
 
 ```zyng
 show "Now message" :::now
@@ -135,9 +130,8 @@ show "Yesterday message" :::yest
 show "Tomorrow message" :::tomo
 show "Exact time" :::at:"2025-12-03T21:00:00+09:00"
 ```
-```
 
-そして次のように実行します。
+そのうえで次のように実行します。
 
 ```bash
 python -m zyng.runner timetst.md
