@@ -1,0 +1,29 @@
+# Python bytecode / キャッシュ
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ビルド成果物
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# 仮想環境
+.venv/
+venv/
+env/
+.env/
+
+# pytest / mypy などのキャッシュ
+.pytest_cache/
+.mypy_cache/
+.cache/
+
+# エディタ・IDE
+.vscode/
+.idea/
+
+# OSごみ
+.DS_Store
+Thumbs.db
